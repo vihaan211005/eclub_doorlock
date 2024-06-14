@@ -23,6 +23,26 @@
 #define AUTHOR_EMAIL "doorlock22eclub@gmail.com"
 #define AUTHOR_PASSWORD "aorv fsxj uuoq bsfa"
 
+// keypad library
+#include <Keypad.h>
+
+const byte ROWS = 4;
+const byte COLS = 3;
+
+char hexaKeys[ROWS][COLS] = {
+    {'1', '2', '3'},
+    {'4', '5', '6'},
+    {'7', '8', '9'},
+    {'*', '0', '#'}};
+
+byte rowPins[ROWS] = {9, 8, 7, 6};
+byte colPins[COLS] = {5, 4, 3};
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
+
+// Change to id of cordis
+int cordi_ids[] = {1, 2, 3, 4, 5};
+
 SMTPSession smtp;
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
@@ -487,6 +507,51 @@ void getFingerprintID()
         }
         else
         {
+            // check if cordi
+            bool is_cordi = false;
+            for (auto i : cordi_ids)
+                if (foundMember.id == i)
+                    is_cordi = true;
+
+            // if not cordi send otp mail
+            if (!is_cordi)
+            {
+                String generated_OTP = generateOTP();
+                for (auto i : cordi_ids)
+                {
+                    member &cordi = getMemberByID(i);
+                    String content = foundMember.name + " is trying to acces the room.\nOTP = " + generated_OTP;
+                    sendMail(cordi.mailiD, "OTP to access club", content);
+                }
+                lcd.clear();
+                lcd.setCursor(0, 0);
+                lcd.print("enter otp");
+                String entered_otp = "";
+
+                // keypad input
+                while (len(entered_otp) != 4)
+                {
+                    char customKey = customKeypad.getKey();
+                    if (customKey)
+                    {
+                        entered_otp += customKey;
+                        lcd.clear();
+                        lcd.setCursor(0, 0);
+                        lcd.print(entered_otp);
+                    }
+                }
+
+                // if not match
+                if (entered_otp != generated_OTP)
+                {
+                    lcd.clear();
+                    lcd.setCursor(0, 0);
+                    lcd.print("Wrong otp");
+                    delay(3000);
+                    return;
+                }
+            }
+
             lcd.clear();
             lcd.setCursor(0, 0);
             lcd.print("hello ");
