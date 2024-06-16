@@ -23,6 +23,25 @@
 #define AUTHOR_EMAIL "doorlock22eclub@gmail.com"
 #define AUTHOR_PASSWORD "aorv fsxj uuoq bsfa"
 
+// capacitive keypad
+#define SCL 8
+#define SDO 9
+byte Key;
+
+byte Read_TTP229_Keypad(void)
+{
+    byte Num;
+    byte Key_State = 0;
+    for (Num = 1; Num <= 16; Num++)
+    {
+        digitalWrite(SCL, LOW);
+        if (!digitalRead(SDO))
+            Key_State = Num;
+        digitalWrite(SCL, HIGH);
+    }
+    return Key_State;
+}
+
 // keypad library
 #include <Keypad.h>
 
@@ -149,6 +168,11 @@ String generateOTP()
 void setup()
 {
     Serial.begin(115200);
+
+    // capacitive keypad i2c comm
+    pinMode(SCL, OUTPUT);
+    pinMode(SDO, INPUT);
+
     myservo.attach(15);
     delay(10);
     Serial.println();
@@ -531,7 +555,8 @@ void getFingerprintID()
                 // keypad input
                 while (len(entered_otp) != 4)
                 {
-                    char customKey = customKeypad.getKey();
+                    // char customKey = customKeypad.getKey();
+                    char customKey = Read_TTP229_Keypad();
                     if (customKey)
                     {
                         entered_otp += customKey;
