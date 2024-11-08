@@ -41,7 +41,7 @@ void serverHandle() {
 
 void handleRoot() {
 
-  String html = "<html><head><meta http-equiv='refresh' content='1'></head><body>";  // Refresh every 10 seconds
+  String html = "<html><head></head><body>";  // Refresh every 10 seconds
   html += "<h1>Member Data</h1>";
   html += "<table border='1'><tr><th>Name</th><th>ID</th><th>Inside Status</th></tr>";
 
